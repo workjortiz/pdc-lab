@@ -1,0 +1,16 @@
+# PDC App Framework — dependencias base del template
+# No borrar las obligatorias. Agrega las tuyas debajo de la línea marcada.
+
+streamlit>=1.57,<1.62
+SQLAlchemy==2.0.52
+python-dotenv==1.0.1
+alembic==1.14.0
+
+# Producción: PostgreSQL
+psycopg2-binary==2.9.10
+
+# Producción: Autenticación Active Directory (pendiente, ver notas de sesión)
+msal==1.31.1
+
+# ── Dependencias propias de tu app ──
+requests==2.32.3

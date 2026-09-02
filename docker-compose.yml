@@ -1,0 +1,19 @@
+# PDC App Framework — docker-compose de referencia
+# Uso: PDC Deploy. En producción real, la BD ya existe (RDS compartido)
+# y este compose solo levanta el container de la app.
+
+services:
+  app:
+    build: .
+    container_name: ${APP_NAME:-pdc-lab}
+    ports:
+      - "8501:8501"
+    environment:
+      - APP_NAME=${APP_NAME:-pdc-lab}
+      - SCHEMA_NAME=${SCHEMA_NAME:-pdc_app_pdc_lab}
+      - DB_MODE=${DB_MODE:-postgresql}
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_ACCESS_CODE=${ADMIN_ACCESS_CODE}
+      - POWER_AUTOMATE_WEBHOOK_URL=${POWER_AUTOMATE_WEBHOOK_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    restart: unless-stopped
