@@ -21,7 +21,7 @@ if str(_ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(_ROOT_DIR))
 
 from app.auth import require_login, require_it_access
-from app.database import get_session, init_db
+from app.database import get_session
 from app.models import Solicitud
 
 NAVY = "#00216F"
@@ -48,7 +48,6 @@ st.markdown(
 )
 
 require_login()
-init_db()
 
 
 def construir_registro_json(nombre_app_propuesto, descripcion_problema, division_area, pais, correo_corporativo, codigo_colaborador=""):

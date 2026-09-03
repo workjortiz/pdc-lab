@@ -4,6 +4,24 @@ Formato: [MAYOR.MENOR.PARCHE] — fecha — qué cambió.
 
 ---
 
+## [2.0.1] — 2026-09-02
+
+- Aclaración en `PROMPT_BASE.md`: Alembic-en-local es excepción de apps fundacionales, no norma general — mismo cambio que PDC Registry.
+
+---
+
+## [2.0.0] — 2026-09-02
+
+- **Cambio de arquitectura:** el schema local ahora se gestiona con Alembic, no con `init_db()`/`create_all()` — mismo motivo y mecanismo que PDC Registry.
+- Agregada la carpeta `migrations/` completa.
+- **Migración única, una sola vez:**
+  ```bash
+  alembic stamp 0001
+  alembic upgrade head
+  ```
+
+---
+
 ## [1.5.0] — 2026-09-02
 
 - Nuevo: campo opcional "¿Ya tienes código colaborador? (RRHH)" en el formulario público
