@@ -11,6 +11,7 @@ Aquí SÍ puedes modificar libremente. Aquí NO debes tocar auth.py/database.py.
 import json
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -50,7 +51,7 @@ st.markdown(
 require_login()
 
 
-def construir_registro_json(nombre_app_propuesto, descripcion_problema, division_area, pais, correo_corporativo, codigo_colaborador=""):
+def construir_registro_json(nombre_completo, nombre_app_propuesto, descripcion_problema, division_area, pais, correo_corporativo, codigo_colaborador=""):
     """Mapea los campos de una solicitud al formato que espera el importador de PDC Registry."""
     return {
         "nombre": (nombre_app_propuesto or "").strip().lower().replace(" ", "-"),
@@ -58,12 +59,10 @@ def construir_registro_json(nombre_app_propuesto, descripcion_problema, division
         "descripcion": descripcion_problema or "",
         "area_pais": f"{division_area or ''} / {pais or ''}".strip(" /"),
         "owner_email": correo_corporativo or "",
-        "usuarios_adicionales": "",
         "estado": "En desarrollo",
         "ambiente": "BETA",
-        "github_repo_url": "",
-        "url_produccion": "",
         "codigo_colaborador": codigo_colaborador or "",
+        "nombre_colaborador": nombre_completo or "",
     }
 
 
@@ -91,17 +90,26 @@ if modo == "📝 Registrar una idea":
             "¡Listo! Tu solicitud fue enviada. Integraciones Digitales se pondrá en "
             "contacto contigo con los siguientes pasos."
         )
-        st.download_button(
-            "📤 Descargar JSON para PDC Registry",
-            data=st.session_state.ultima_solicitud_json,
-            file_name=st.session_state.get("ultima_solicitud_filename", "solicitud-registro.json"),
-            mime="application/json",
-            key="descarga_solicitud",
-        )
+        if st.session_state.get("ultima_solicitud_json"):
+            st.download_button(
+                "📤 Descargar JSON para PDC Registry",
+                data=st.session_state.ultima_solicitud_json,
+                file_name=st.session_state.get("ultima_solicitud_filename", "solicitud-registro.json"),
+                mime="application/json",
+                key="descarga_solicitud",
+            )
+        else:
+            st.warning(
+                "Tu solicitud quedó guardada correctamente, pero no se pudo generar el "
+                "JSON de descarga. Avisa a Integraciones Digitales para que lo generen manualmente."
+            )
         if st.button("📝 Registrar otra idea"):
             st.session_state.formulario_completado = False
             st.session_state.pop("ultima_solicitud_json", None)
             st.session_state.pop("ultima_solicitud_filename", None)
+            st.session_state.pop("nombre_completo_input", None)
+            st.session_state.pop("correo_corporativo_input", None)
+            st.session_state.pop("division_area_input", None)
             st.rerun()
 
     # ── Pantalla 1: el formulario ──
@@ -111,18 +119,35 @@ if modo == "📝 Registrar una idea":
             "Cuéntanos y te contactamos con los siguientes pasos."
         )
 
+        # Estos 3 campos van FUERA del st.form: Streamlit no reacciona en vivo a
+        # cambios dentro de un form (solo al enviar) — para que la mayúscula se
+        # vea al tabular, el widget necesita un on_change fuera del form.
+        def _forzar_mayusculas(key):
+            if key in st.session_state and st.session_state[key]:
+                st.session_state[key] = st.session_state[key].upper()
+
+        st.markdown("### Sobre ti")
+        c1, c2 = st.columns(2)
+        c1.text_input(
+            "Nombre completo *", key="nombre_completo_input",
+            on_change=_forzar_mayusculas, args=("nombre_completo_input",),
+        )
+        c2.text_input(
+            "Correo corporativo *", key="correo_corporativo_input",
+            on_change=_forzar_mayusculas, args=("correo_corporativo_input",),
+        )
+        c3, c4 = st.columns(2)
+        c3.selectbox("Empresa / mundo", ["NEXO", "VIKINGO DISTRIBUIDORA", "PDC BRANDS", "MOSTRO"], key="empresa_input")
+        c4.text_input(
+            "División / Área", key="division_area_input",
+            on_change=_forzar_mayusculas, args=("division_area_input",),
+        )
+
         with st.form("solicitud_lab", clear_on_submit=True):
-            st.markdown("### Sobre ti")
-            c1, c2 = st.columns(2)
-            nombre_completo = c1.text_input("Nombre completo *")
-            correo_corporativo = c2.text_input("Correo corporativo *")
-            c3, c4 = st.columns(2)
-            empresa = c3.selectbox("Empresa / mundo", ["NEXO", "VIKINGO DISTRIBUIDORA", "PDC BRANDS", "MOSTRO"])
-            division_area = c4.text_input("División / Área")
             c_pais, c_codigo = st.columns(2)
             pais = c_pais.selectbox("País", ["GT", "SV", "HN", "NI", "PN", "RD"])
-            codigo_colaborador = c_codigo.text_input(
-                "¿Ya tienes código colaborador? (RRHH)", placeholder="opcional"
+            codigo_colaborador_num = c_codigo.number_input(
+                "Código colaborador (RRHH) *", min_value=0, step=1, value=None, format="%d"
             )
 
             st.markdown("### Tu equipo")
@@ -131,7 +156,7 @@ if modo == "📝 Registrar una idea":
             laptop_gestionada_it = c6.selectbox("¿Laptop gestionada por IT (corporativa)?", ["Sí", "No"]) == "Sí"
             c7, c8, c9 = st.columns(3)
             tiene_vscode = c7.selectbox("¿Tienes VS Code?", ["Sí", "No", "No sé"])
-            tiene_git = c8.selectbox("¿Tienes Git?", ["Sí", "No", "No sé"])
+            tiene_git = c8.selectbox("¿Tienes un Gestor Git?", ["Sí", "No", "No sé"])
             tiene_python = c9.selectbox("¿Tienes Python 3.11?", ["Sí", "No", "No sé"])
 
             st.markdown("### Tu idea")
@@ -148,7 +173,11 @@ if modo == "📝 Registrar una idea":
             enviado = st.form_submit_button("Solicitar Registro", type="primary", use_container_width=True)
 
             if enviado:
-                nombre_completo = (nombre_completo or "").upper()
+                nombre_completo = st.session_state.get("nombre_completo_input", "") or ""
+                correo_corporativo = st.session_state.get("correo_corporativo_input", "") or ""
+                division_area = st.session_state.get("division_area_input", "") or ""
+                empresa = st.session_state.get("empresa_input", "")
+                codigo_colaborador = str(int(codigo_colaborador_num)) if codigo_colaborador_num is not None else ""
 
                 faltantes = []
                 if not nombre_completo:
@@ -157,6 +186,8 @@ if modo == "📝 Registrar una idea":
                     faltantes.append("Correo corporativo")
                 if not descripcion_problema:
                     faltantes.append("Descripción del problema")
+                if not codigo_colaborador:
+                    faltantes.append("Código colaborador")
 
                 if faltantes:
                     st.error(f"Completa los campos obligatorios: {', '.join(faltantes)}")
@@ -211,14 +242,20 @@ if modo == "📝 Registrar una idea":
                                 pass  # el registro en BD ya quedó guardado; el correo es best-effort
 
                         # JSON listo para importar en PDC Registry — se genera al instante,
-                        # sin pasar por ninguna vista de IT.
-                        registro_json = construir_registro_json(
-                            nombre_app_propuesto, descripcion_problema, division_area, pais, correo_corporativo, codigo_colaborador
-                        )
-                        st.session_state.ultima_solicitud_json = json.dumps(registro_json, ensure_ascii=False, indent=2)
-                        st.session_state.ultima_solicitud_filename = construir_nombre_archivo(
-                            nombre_completo, registro_json["nombre"]
-                        )
+                        # sin pasar por ninguna vista de IT. Si algo aquí falla, el registro
+                        # en BD ya quedó guardado arriba — no debe tumbar toda la pantalla.
+                        try:
+                            registro_json = construir_registro_json(
+                                nombre_completo, nombre_app_propuesto, descripcion_problema, division_area, pais, correo_corporativo, codigo_colaborador
+                            )
+                            st.session_state.ultima_solicitud_json = json.dumps(registro_json, ensure_ascii=False, indent=2)
+                            st.session_state.ultima_solicitud_filename = construir_nombre_archivo(
+                                nombre_completo, registro_json["nombre"]
+                            )
+                        except Exception:
+                            st.session_state.ultima_solicitud_json = None
+                            st.session_state.ultima_solicitud_filename = None
+
                         st.session_state.formulario_completado = True
                         st.rerun()
                     finally:
@@ -264,7 +301,7 @@ else:
                     st.write(f"**Problema descrito:** {s.descripcion_problema}")
 
                     export_payload = construir_registro_json(
-                        s.nombre_app_propuesto, s.descripcion_problema, s.division_area, s.pais, s.correo_corporativo, s.codigo_colaborador
+                        s.nombre_completo, s.nombre_app_propuesto, s.descripcion_problema, s.division_area, s.pais, s.correo_corporativo, s.codigo_colaborador
                     )
                     st.download_button(
                         "📤 Exportar como JSON (para PDC Registry)",

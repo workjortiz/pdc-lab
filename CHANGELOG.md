@@ -4,6 +4,35 @@ Formato: [MAYOR.MENOR.PARCHE] — fecha — qué cambió.
 
 ---
 
+## [2.3.0] — 2026-09-03
+
+- Nuevo: el JSON exportado (formulario y cola de IT) ahora incluye `nombre_colaborador` (tomado de "Nombre completo") — permite que PDC Registry autocomplete el nombre del colaborador nuevo, sin volver a teclearlo
+- Quitado del JSON: `usuarios_adicionales`, `github_repo_url`, `url_produccion` — esos campos ya no se piden en el registro inicial de PDC Registry (se completan después, en Aprovisionamiento)
+
+---
+
+## [2.2.1] — 2026-09-03
+
+- Fix: `NameError: name 'datetime' is not defined` al enviar el formulario — faltaba `from datetime import datetime` en `main.py` (la usaba `construir_nombre_archivo()`, agregada en v1.4.1, pero solo se probó de forma aislada, no dentro del archivo real)
+- Fix: si la generación del JSON/nombre de archivo falla por cualquier razón, ya no tumba toda la pantalla — la solicitud queda guardada igual (eso ocurre antes) y se muestra un aviso en vez de un error
+
+---
+
+## [2.2.0] — 2026-09-02
+
+- Fix: "Código colaborador" ahora es un campo numérico real (`number_input`) — ya no permite escribir letras en absoluto, no solo rechazarlas al enviar
+- Fix: "Nombre completo", "Correo corporativo" y "División / Área" ahora se ven en MAYÚSCULAS de inmediato al tabular fuera del campo — se movieron fuera del formulario porque Streamlit no reacciona en vivo a cambios dentro de un `st.form` (solo al enviar)
+- Cambio: etiqueta "¿Tienes Git?" → "¿Tienes un Gestor Git?"
+
+---
+
+## [2.1.0] — 2026-09-02
+
+- Cambio: "Código colaborador (RRHH)" pasa de opcional a **obligatorio**, y se valida que sea solo numérico
+- Fix: "Correo corporativo" y "División / Área" ahora también se guardan y exportan en MAYÚSCULAS (antes solo aplicaba a "Nombre completo")
+
+---
+
 ## [2.0.1] — 2026-09-02
 
 - Aclaración en `PROMPT_BASE.md`: Alembic-en-local es excepción de apps fundacionales, no norma general — mismo cambio que PDC Registry.
