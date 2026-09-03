@@ -4,6 +4,14 @@ Formato: [MAYOR.MENOR.PARCHE] — fecha — qué cambió.
 
 ---
 
+## [3.0.0] — 2026-09-03
+
+- **Cambio mayor:** eliminada por completo la vista "🔐 Acceso IT" (cola de solicitudes, gate por clave, exportar JSON desde ahí) — ya no se usa, la revisión de IT ocurre en PDC Registry, no aquí
+- `pdc-lab` ahora es únicamente el formulario público + su pantalla de cierre — sin selector de modo
+- Función `require_it_access()` de `auth.py` queda sin uso (no se modificó el archivo, solo se dejó de importar)
+
+---
+
 ## [2.3.0] — 2026-09-03
 
 - Nuevo: el JSON exportado (formulario y cola de IT) ahora incluye `nombre_colaborador` (tomado de "Nombre completo") — permite que PDC Registry autocomplete el nombre del colaborador nuevo, sin volver a teclearlo

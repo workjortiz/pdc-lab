@@ -5,6 +5,6 @@
   "schema_name": "pdc_app_pdc_lab",
   "owner": "juan.ortiz@grupopdc.com",
   "acceso_publico": true,
-  "version": "2.3.0",
+  "version": "3.0.0",
   "nota": "Punto de entrada del framework — sin login. El puente hacia PDC Registry es el correo (Power Automate), no lectura cruzada de schema."
 }
