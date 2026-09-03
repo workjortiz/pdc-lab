@@ -31,6 +31,7 @@ class Solicitud(Base):
     empresa = Column(String(100))          # Grupo PDC / PDC Brands / Vikingo / Nexo
     division_area = Column(String(255))
     pais = Column(String(100))
+    codigo_colaborador = Column(String(50))  # opcional — el que asigna RRHH al ingreso
 
     # Diagnóstico técnico — determina qué instructivo recibe y si falta algo
     sistema_operativo = Column(String(50))     # Windows / macOS / Linux
